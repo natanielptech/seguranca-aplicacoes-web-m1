@@ -27,6 +27,10 @@ Arquivos principais:
 
 ## Como executar
 
+É necessário ter o Node.js **20.19 ou superior na série 20**, ou **22.12 ou
+superior**, e o npm instalados, conforme os requisitos do Vite. Na Vercel,
+configure também uma versão compatível do Node.js para o projeto.
+
 Na raiz do repositório, instale as dependências:
 
 ```bash
