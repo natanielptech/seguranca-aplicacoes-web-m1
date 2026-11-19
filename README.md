@@ -24,8 +24,9 @@ O repositório inclui uma interface em **HTML, JavaScript e React** e uma API
 JavaScript compatível com a Vercel. Consulte o [guia do laboratório](docs/README.md)
 para instalar, executar, implantar e observar as requisições com o DevTools.
 
-> A aplicação usa apenas exemplos fictícios: não há login, sessão ou banco de
-> dados reais. Não envie informações sensíveis.
+> A aplicação inclui um exemplo didático de autenticação e autorização com
+> contas fictícias, mas não possui sessão ou banco de dados reais. Não envie
+> informações sensíveis.
 
 ---
 
