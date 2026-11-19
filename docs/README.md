@@ -86,6 +86,83 @@ sequenceDiagram
 O status informa o resultado da requisição; ele não garante que os dados foram
 armazenados de forma permanente.
 
+## Quatro exemplos de requisição
+
+Os exemplos abaixo correspondem às quatro ações disponíveis na página do
+laboratório. Execute cada uma e compare o método, a URL, o status e o JSON na
+aba **Network** e na área **Resposta da API**.
+
+### 1. GET válido: consultar um tema
+
+```http
+GET /api/observacao?tema=http
+Accept: application/json
+```
+
+Resposta esperada: `200 OK`, com o tema e sua explicação:
+
+```json
+{
+  "tema": "http",
+  "explicacao": "HTTP é o protocolo usado para trocar requisições e respostas na web."
+}
+```
+
+O tema é enviado na URL, depois de `?tema=`.
+
+### 2. POST válido: enviar uma mensagem fictícia
+
+```http
+POST /api/observacao
+Content-Type: application/json
+
+{"mensagem":"Olá, mundo!"}
+```
+
+Resposta esperada: `201 Created`, com a mensagem e o aviso de que ela não foi
+armazenada:
+
+```json
+{
+  "mensagem": "Olá, mundo!",
+  "aviso": "Exemplo fictício: a mensagem não foi armazenada."
+}
+```
+
+A mensagem vai no body JSON. O status `201` não significa que ela foi gravada
+permanentemente.
+
+### 3. GET inválido: enviar um tema desconhecido
+
+```http
+GET /api/observacao?tema=desconhecido
+```
+
+Resposta esperada: `400 Bad Request`, pois o servidor aceita apenas os temas
+`http`, `api` e `seguranca`:
+
+```json
+{
+  "erro": "Tema inválido. Escolha http, api ou seguranca."
+}
+```
+
+Este exemplo mostra que a validação precisa acontecer no servidor, mesmo que a
+interface ofereça uma lista de opções.
+
+### 4. DELETE não permitido: tentar um método não aceito
+
+```http
+DELETE /api/observacao
+```
+
+Resposta esperada: `405 Method Not Allowed`. O cabeçalho `Allow: GET, POST`
+indica os métodos aceitos pela API.
+
+Na página, use o botão correspondente a cada exemplo para gerar a requisição.
+O painel **Resposta da API** mostra o status e o JSON recebido; no DevTools,
+**Network** permite conferir os detalhes enviados e recebidos.
+
 ## Observando no DevTools
 
 Use `npx vercel dev` ou abra o projeto implantado. As ferramentas de

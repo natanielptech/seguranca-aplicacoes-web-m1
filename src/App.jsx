@@ -87,35 +87,42 @@ export default function App() {
 
       <section aria-labelledby="experimente">
         <h2 id="experimente">Experimente na prática</h2>
-        <p>Abra o DevTools (F12), selecione <strong>Network</strong> e execute as ações abaixo.</p>
+        <p>Abra o DevTools (F12), selecione <strong>Network</strong> e compare estes quatro exemplos de requisição e resposta.</p>
         <div className="forms">
           <form className="card" onSubmit={consultar}>
-            <h3>GET · consultar</h3>
-            <p>O tema é enviado como parâmetro na URL.</p>
+            <h3>Exemplo 1 · GET válido</h3>
+            <p>Consulta um tema. O valor selecionado aparece como parâmetro na URL.</p>
+            <pre><code>{`GET /api/observacao?tema=${tema}\nAccept: application/json`}</code></pre>
             <label htmlFor="tema">Tema</label>
             <select id="tema" value={tema} onChange={(event) => setTema(event.target.value)}>
               <option value="http">HTTP</option>
               <option value="api">API</option>
               <option value="seguranca">Segurança</option>
             </select>
-            <button disabled={carregando} type="submit">Consultar tema</button>
+            <button disabled={carregando} type="submit">Enviar GET · esperado 200</button>
           </form>
 
           <form className="card" onSubmit={enviarMensagem}>
-            <h3>POST · enviar</h3>
-            <p>A mensagem é enviada no body, em formato JSON.</p>
+            <h3>Exemplo 2 · POST válido</h3>
+            <p>A mensagem vai no body JSON. Uma resposta 201 indica envio aceito, não armazenamento permanente.</p>
+            <pre><code>{'POST /api/observacao\nContent-Type: application/json\n\n{"mensagem":"Olá, mundo!"}'}</code></pre>
             <label htmlFor="mensagem">Mensagem fictícia</label>
             <input id="mensagem" value={mensagem} onChange={(event) => setMensagem(event.target.value)} maxLength={200} required placeholder="Olá, mundo!" />
-            <button disabled={carregando} type="submit">Enviar mensagem</button>
+            <button disabled={carregando} type="submit">Enviar POST · esperado 201</button>
           </form>
 
           <div className="card">
-            <h3>Exemplos de erro</h3>
-            <p>Compare uma entrada inválida (400) com um método não aceito (405).</p>
-            <div className="example-actions">
-              <button disabled={carregando} onClick={consultarTemaInvalido} type="button">Consultar tema inválido</button>
-              <button disabled={carregando} onClick={tentarMetodoNaoPermitido} type="button">Tentar DELETE</button>
-            </div>
+            <h3>Exemplo 3 · parâmetro inválido</h3>
+            <p>O servidor valida o tema recebido e responde 400 quando ele não é permitido.</p>
+            <pre><code>{"GET /api/observacao?tema=desconhecido\n\nResposta: 400 Bad Request"}</code></pre>
+            <button disabled={carregando} onClick={consultarTemaInvalido} type="button">Enviar GET inválido · esperado 400</button>
+          </div>
+
+          <div className="card">
+            <h3>Exemplo 4 · método não permitido</h3>
+            <p>A API aceita GET e POST. Para outro método, responde 405 e informa os métodos aceitos.</p>
+            <pre><code>{"DELETE /api/observacao\n\nResposta: 405 Method Not Allowed\nAllow: GET, POST"}</code></pre>
+            <button disabled={carregando} onClick={tentarMetodoNaoPermitido} type="button">Enviar DELETE · esperado 405</button>
           </div>
         </div>
         <div className="card response" aria-live="polite">
