@@ -12,6 +12,8 @@ export default function App() {
   const [resultado, setResultado] = useState(null);
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [usuario, setUsuario] = useState("administrador");
+  const [senha, setSenha] = useState("");
 
   async function enviar(url, options) {
     setErro("");
@@ -60,6 +62,14 @@ export default function App() {
     enviar("/api/observacao", {
       method: "DELETE",
       headers: { Accept: "application/json" },
+    });
+  }
+
+  function acessar(acao) {
+    enviar("/api/acesso", {
+      method: "POST",
+      headers: { Accept: "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, senha, acao }),
     });
   }
 
@@ -136,6 +146,41 @@ export default function App() {
             </>
           )}
           {!carregando && !erro && !resultado && <p>Escolha uma ação para ver a resposta aqui.</p>}
+        </div>
+      </section>
+
+      <section aria-labelledby="controle-acesso">
+        <h2 id="controle-acesso">Autenticação e autorização</h2>
+        <p>Entre com uma das contas fictícias e compare o acesso dos perfis. A API confere as credenciais e a permissão no servidor.</p>
+        <div className="forms">
+          <form className="card" onSubmit={(event) => {
+            event.preventDefault();
+            acessar("consultar");
+          }}>
+            <h3>Exemplo · dois perfis</h3>
+            <p>Administrador: <code>administrador / admin-demo</code><br />Aluno: <code>aluno / aluno-demo</code></p>
+            <pre><code>{'POST /api/acesso\n{"usuario":"aluno","senha":"aluno-demo","acao":"administrar"}\n\nResposta esperada: 403 Forbidden'}</code></pre>
+            <label htmlFor="usuario">Usuário de demonstração</label>
+            <select id="usuario" value={usuario} onChange={(event) => setUsuario(event.target.value)} autoComplete="username">
+              <option value="administrador">Ana · administradora</option>
+              <option value="aluno">Bruno · aluno</option>
+            </select>
+            <label htmlFor="senha">Senha fictícia</label>
+            <input id="senha" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} autoComplete="current-password" required />
+            <div className="example-actions">
+              <button disabled={carregando} type="submit">Consultar conteúdo · esperado 200</button>
+              <button disabled={carregando} onClick={() => acessar("administrar")} type="button">Administrar usuários · esperado 200 ou 403</button>
+            </div>
+          </form>
+          <div className="card">
+            <h3>O que observar</h3>
+            <ul>
+              <li><strong>Autenticação:</strong> credenciais inválidas recebem 401.</li>
+              <li><strong>Autorização:</strong> aluno autenticado recebe 403 ao tentar administrar.</li>
+              <li>As duas contas podem consultar conteúdo; só a administradora pode administrar.</li>
+            </ul>
+            <p>Troque a senha para ver a resposta 401. Verifique o status e o JSON em Network.</p>
+          </div>
         </div>
       </section>
 
