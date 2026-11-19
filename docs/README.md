@@ -107,11 +107,20 @@ em navegadores semelhantes.
    **Headers**, o JSON enviado em **Payload** e os dados fictícios retornados
    em **Response**. `Content-Type: application/json` indica o formato do corpo
    enviado.
+7. Na seção **Exemplos de erro** da página, clique em **Consultar tema inválido**.
+   A API responde `400 Bad Request`, pois o valor `desconhecido` não é um tema
+   permitido. Depois clique em **Tentar DELETE**: a API responde
+   `405 Method Not Allowed`, pois só aceita `GET` e `POST`. Em ambos os casos,
+   confira o status e o JSON com a explicação na área **Resposta da API** e na
+   aba **Network**.
 
 Opcionalmente, para observar erros da API, execute estes comandos no **Console**
 da página e confira cada requisição e resposta em **Network**:
 
 ```js
+// Tema desconhecido: 400
+fetch('/api/observacao?tema=desconhecido');
+
 // Mensagem ausente: 400
 fetch('/api/observacao', {
   method: 'POST',

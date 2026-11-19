@@ -25,6 +25,7 @@ input, select { display: block; width: 100%; border: 1px solid #8997aa; margin-b
 button { background: #006a5e; color: white; border: 0; cursor: pointer; font-weight: 700; }
 button:hover { background: #004e46; }
 button:disabled { opacity: .6; cursor: wait; }
+.example-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
 input:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid #e6a700; outline-offset: 2px; }
 .response { margin-top: 1rem; }
 pre { background: #132d50; color: #e2f6f1; padding: 1rem; border-radius: .5rem; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
