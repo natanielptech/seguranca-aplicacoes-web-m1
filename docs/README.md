@@ -15,7 +15,9 @@ flowchart LR
     U[Pessoa usuária] --> N[Navegador e DevTools]
     N -->|Página e arquivos da interface| F["Frontend: Vite + React"]
     N -->|HTTP: GET e POST| A["API Vercel: /api/observacao"]
+    N -->|HTTP: POST| X["API Vercel: /api/acesso"]
     A --> D[Dados fictícios no código ou na memória]
+    X --> D
 ```
 
 Arquivos principais:
@@ -24,6 +26,7 @@ Arquivos principais:
 - `src/main.jsx`: inicializa o React.
 - `src/App.jsx`: contém a interface.
 - `api/observacao.js`: implementa a API JavaScript da Vercel.
+- `api/acesso.js`: demonstra autenticação e autorização com contas fictícias.
 
 ## Como executar
 
@@ -163,6 +166,35 @@ Na página, use o botão correspondente a cada exemplo para gerar a requisição
 O painel **Resposta da API** mostra o status e o JSON recebido; no DevTools,
 **Network** permite conferir os detalhes enviados e recebidos.
 
+## Exemplo didático de autenticação e autorização
+
+A seção **Autenticação e autorização** da página apresenta duas contas fictícias
+com perfis diferentes:
+
+| Usuário | Senha fictícia | Perfil |
+|---|---|---|
+| `administrador` | `admin-demo` | administrador |
+| `aluno` | `aluno-demo` | aluno |
+
+Use **Consultar conteúdo** para ver que os dois perfis podem consultar o recurso.
+Depois selecione o aluno e clique em **Administrar usuários**: a API responde
+`403 Forbidden`, pois o usuário está autenticado, mas não tem essa permissão.
+A administradora pode realizar a mesma ação. Uma senha inválida resulta em
+`401 Unauthorized`, e a resposta não revela o perfil de nenhuma conta.
+
+Exemplo de requisição:
+
+```http
+POST /api/acesso
+Content-Type: application/json
+
+{"usuario":"aluno","senha":"aluno-demo","acao":"administrar"}
+```
+
+O servidor autentica as credenciais e verifica a permissão para a ação; a
+interface não decide se o acesso é permitido. Confira o status e o corpo da
+resposta na aba **Network**.
+
 ## Observando no DevTools
 
 Use `npx vercel dev` ou abra o projeto implantado. As ferramentas de
@@ -234,8 +266,10 @@ desenvolvimento na própria máquina.
 
 - Não envie senhas, tokens, informações pessoais ou quaisquer dados sensíveis:
   use somente exemplos fictícios.
-- Não há autenticação, autorização, sessão real ou cookies de sessão. A API
-  não verifica a identidade nem permissões de quem a acessa.
+- O exemplo em `/api/acesso` usa contas e senhas fictícias fixas no código.
+  Ele demonstra autenticação e autorização no servidor, mas não cria sessão,
+  cookie de sessão ou armazenamento seguro de usuários e senhas. Não use essas
+  credenciais nem esse modelo em produção.
 - Não há persistência real nem banco de dados. Dados em memória podem
   desaparecer entre requisições, reinicializações ou instâncias da função.
 - HTTPS não transforma este laboratório em uma aplicação pronta para produção
