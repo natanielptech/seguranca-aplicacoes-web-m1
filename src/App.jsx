@@ -49,6 +49,20 @@ export default function App() {
     });
   }
 
+  function consultarTemaInvalido() {
+    enviar("/api/observacao?tema=desconhecido", {
+      method: "GET",
+      headers: { Accept: "application/json" },
+    });
+  }
+
+  function tentarMetodoNaoPermitido() {
+    enviar("/api/observacao", {
+      method: "DELETE",
+      headers: { Accept: "application/json" },
+    });
+  }
+
   return (
     <main>
       <header className="hero">
@@ -94,6 +108,15 @@ export default function App() {
             <input id="mensagem" value={mensagem} onChange={(event) => setMensagem(event.target.value)} maxLength={200} required placeholder="Olá, mundo!" />
             <button disabled={carregando} type="submit">Enviar mensagem</button>
           </form>
+
+          <div className="card">
+            <h3>Exemplos de erro</h3>
+            <p>Compare uma entrada inválida (400) com um método não aceito (405).</p>
+            <div className="example-actions">
+              <button disabled={carregando} onClick={consultarTemaInvalido} type="button">Consultar tema inválido</button>
+              <button disabled={carregando} onClick={tentarMetodoNaoPermitido} type="button">Tentar DELETE</button>
+            </div>
+          </div>
         </div>
         <div className="card response" aria-live="polite">
           <h3>Resposta da API</h3>
