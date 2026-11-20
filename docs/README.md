@@ -4,6 +4,206 @@ Este laboratório apresenta, de forma prática, como um navegador troca mensagen
 HTTP com uma API. Os dados são fictícios e ficam apenas no código ou na memória:
 não há banco de dados.
 
+## Resumo da aula: fundamentos de aplicações web
+
+Uma aplicação web é formada por componentes que cooperam para apresentar uma
+interface, processar regras e, em aplicações completas, armazenar informações.
+Entender esse caminho ajuda a localizar onde os dados entram, onde são
+validados e quem deve controlar o acesso.
+
+### Cliente, servidor e partes da aplicação
+
+O **cliente** inicia uma solicitação — normalmente, é o navegador. O **servidor**
+recebe a solicitação, executa as regras da aplicação e devolve uma resposta.
+O front-end é a parte apresentada ao usuário; o back-end processa as regras e
+pode acessar serviços ou bancos de dados. Uma API define como esses componentes
+trocam informações.
+
+```mermaid
+flowchart LR
+    U[Pessoa usuária] --> B[Navegador]
+    B --> F[Front-end]
+    B <-->|Requisições e respostas HTTP| A[API / Back-end]
+    A --> R[Regras de negócio]
+    R -. "pode consultar ou atualizar" .-> DB[(Banco de dados)]
+```
+
+O banco de dados do diagrama é comum em aplicações web, mas **não existe neste
+laboratório**: as APIs usam exemplos fictícios e não persistem dados. Aqui, o
+navegador executa a interface em React e chama as funções `/api/observacao` e
+`/api/acesso`.
+
+### O caminho de uma requisição
+
+Quando uma pessoa consulta um tema no laboratório, o navegador envia uma
+requisição à API. A resposta contém um código de status e dados JSON. O fluxo
+também mostra por que a validação precisa ocorrer no servidor: uma interface
+pode restringir as opções visíveis, mas a requisição pode ser construída ou
+alterada fora dela.
+
+```mermaid
+sequenceDiagram
+    actor P as Pessoa
+    participant N as Navegador / Front-end
+    participant A as API / Back-end
+    P->>N: Seleciona o tema "http"
+    N->>A: GET /api/observacao?tema=http
+    A->>A: Valida o tema recebido
+    A-->>N: 200 OK + JSON
+    N-->>P: Exibe a explicação
+```
+
+Uma requisição HTTP é composta, em termos simples, por:
+
+- **método**: a operação solicitada, como `GET` ou `POST`;
+- **URL**: o endereço do recurso, possivelmente com parâmetros;
+- **headers**: metadados, por exemplo `Accept` e `Content-Type`;
+- **body**: dados enviados quando a operação precisa deles.
+
+Exemplo de consulta usada no laboratório:
+
+```http
+GET /api/observacao?tema=http
+Accept: application/json
+```
+
+O parâmetro `tema` está na URL. Já no envio de uma mensagem, os dados ficam no
+body:
+
+```http
+POST /api/observacao
+Content-Type: application/json
+
+{"mensagem":"Olá, mundo!"}
+```
+
+### Métodos, validação e status
+
+Métodos indicam a intenção da requisição; não concedem permissão por si só.
+Usos comuns incluem `GET` para consultar, `POST` para enviar ou criar, `PUT` e
+`PATCH` para atualizar e `DELETE` para remover. Cada API define quais métodos
+aceita. Neste laboratório, `/api/observacao` aceita somente `GET` e `POST`.
+
+O servidor responde com um **status HTTP**, que comunica o resultado da
+requisição. Alguns códigos observados no laboratório:
+
+| Status | Significado neste contexto |
+|---|---|
+| `200 OK` | Consulta atendida |
+| `201 Created` | Envio válido aceito; não significa armazenamento permanente |
+| `400 Bad Request` | Parâmetro ou conteúdo inválido |
+| `401 Unauthorized` | Credenciais inválidas no exemplo de acesso |
+| `403 Forbidden` | Usuário autenticado sem permissão para a ação |
+| `405 Method Not Allowed` | Método não aceito pelo endpoint |
+
+O servidor não deve confiar apenas nas validações visuais do front-end. Por
+exemplo, `/api/observacao` verifica se o tema pertence à lista esperada e se a
+mensagem recebida é uma string válida de até 200 caracteres.
+Campos ausentes ou com tipos inválidos no exemplo de acesso são rejeitados com
+`400`; credenciais presentes, mas incorretas, recebem `401`.
+
+### HTTP e HTTPS
+
+HTTP define a troca de requisições e respostas. HTTPS é HTTP protegido por TLS,
+que protege os dados enquanto trafegam entre cliente e servidor:
+
+```mermaid
+flowchart LR
+    subgraph HTTP["HTTP: tráfego sem proteção TLS"]
+        C1[Navegador] -->|Requisição e resposta| S1[Servidor]
+    end
+    subgraph HTTPS["HTTPS: tráfego protegido por TLS"]
+        C2[Navegador] ==>|Canal protegido em trânsito| S2[Servidor]
+    end
+```
+
+HTTPS é importante para proteger senhas, tokens e outros dados em trânsito,
+mas não corrige erros da aplicação. Ainda é necessário validar entradas,
+autenticar usuários e verificar permissões. O endereço público implantado na
+Vercel usa HTTPS; endereços locais de desenvolvimento podem usar HTTP.
+
+### Autenticação e autorização
+
+Esses conceitos respondem a perguntas diferentes:
+
+- **Autenticação**: “Quem é você?” — verifica a identidade, por exemplo, com
+  credenciais.
+- **Autorização**: “O que você pode fazer?” — verifica se a identidade pode
+  executar uma ação sobre um recurso.
+
+No exemplo didático, as duas contas fictícias podem consultar conteúdo, mas
+apenas o perfil administrador pode administrar usuários. A decisão é tomada
+pela API, não pela interface:
+
+```mermaid
+flowchart TD
+    R[Requisição para administrar] --> C{Credenciais válidas?}
+    C -- Não --> U401[401 Unauthorized]
+    C -- Sim --> P{Perfil tem permissão?}
+    P -- Não --> F403[403 Forbidden]
+    P -- Sim --> O200[200 OK]
+```
+
+Em geral, `401` indica que a pessoa não foi autenticada; `403` indica que a
+identidade foi reconhecida, mas não tem permissão para aquela ação. As contas
+e senhas exibidas neste repositório são apenas demonstrações fixas: não são
+seguras para produção e não representam um sistema real de usuários.
+
+### Cookies e sessões
+
+HTTP não mantém, por si só, a identidade de uma pessoa entre requisições. Um
+padrão comum é o servidor criar uma sessão após a autenticação e enviar ao
+navegador um identificador por meio de um cookie. Nas solicitações seguintes,
+o navegador envia o cookie para que o servidor associe a requisição à sessão:
+
+```mermaid
+sequenceDiagram
+    participant N as Navegador
+    participant S as Servidor
+    N->>S: Envia credenciais por HTTPS
+    S->>S: Verifica credenciais e cria sessão
+    S-->>N: Resposta com cookie de sessão
+    N->>S: Próxima requisição com o cookie
+    S->>S: Identifica a sessão e verifica a permissão
+```
+
+Este fluxo é uma explicação conceitual: **o laboratório não cria sessões nem
+cookies de autenticação**. Em aplicações reais, cookies de sessão e sessões
+precisam de proteção adequada; não se deve tratar valores visíveis no navegador
+como segredos inacessíveis ao usuário.
+
+### Onde pensar em segurança
+
+Formulários, parâmetros de URL, bodies, APIs, mecanismos de login e recursos
+administrativos são pontos em que dados ou ações entram na aplicação. Ao
+analisá-los, pergunte:
+
+1. Quais valores o cliente pode controlar ou alterar?
+2. O servidor valida os dados recebidos?
+3. Quem está autenticado e quem tem autorização para a ação?
+4. A resposta expõe apenas os dados necessários?
+5. Os dados sensíveis estão protegidos durante o transporte?
+
+```mermaid
+flowchart TD
+    I[Entrada controlada pelo cliente] --> V{Servidor valida?}
+    V -- Não --> R[Risco de entrada inesperada]
+    V -- Sim --> A{Ação requer autenticação?}
+    A -- Sim --> AU{Identidade autenticada?}
+    A -- Não --> P{Permissão necessária?}
+    AU -- Não --> E401[Negar: 401]
+    AU -- Sim --> P
+    P -- Sim --> AP{Usuário tem permissão?}
+    P -- Não --> OK[Processar solicitação]
+    AP -- Não --> E403[Negar: 403]
+    AP -- Sim --> OK
+```
+
+Nesta etapa, o objetivo é compreender e observar o funcionamento normal da
+aplicação. O DevTools, especialmente a aba **Network**, ajuda a relacionar a
+ação na página com a URL, o método, os headers, o body, o status e a resposta.
+O laboratório não é uma aplicação pronta para produção nem contém dados reais.
+
 ## Arquitetura
 
 O navegador recebe a página e executa a interface em React. A interface e a API
